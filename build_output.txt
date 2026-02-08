@@ -1,0 +1,58 @@
+
+> n8n-crm@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 3.9s
+  Running TypeScript ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/22) ...
+  Generating static pages using 11 workers (5/22) 
+  Generating static pages using 11 workers (10/22) 
+  Generating static pages using 11 workers (16/22) 
+User: undefined Role: null
+Projects: 0
+Filtered: 0
+Ô£ô Generating static pages using 11 workers (22/22) in 470.7ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ ãÆ /api/v1/api-keys
+Ôö£ ãÆ /api/v1/api-keys/[id]
+Ôö£ ãÆ /api/v1/campaigns
+Ôö£ ãÆ /api/v1/campaigns/[id]
+Ôö£ ãÆ /api/v1/dashboard
+Ôö£ ãÆ /api/v1/leads
+Ôö£ ãÆ /api/v1/leads/[id]
+Ôö£ ãÆ /api/v1/leads/[id]/outreach-history
+Ôö£ ãÆ /api/v1/leads/[id]/outreach-status
+Ôö£ ãÆ /api/v1/leads/[id]/schedule-followup
+Ôö£ ãÆ /api/v1/projects
+Ôö£ ãÆ /api/v1/projects/public
+Ôö£ ãÆ /api/v1/tickets
+Ôö£ ãÆ /api/v1/tickets/[id]
+Ôö£ ãÆ /api/v1/users
+Ôö£ ãÆ /api/v1/users/me
+Ôö£ ãÆ /api/v1/users/sync
+Ôö£ ãÆ /campaigns
+Ôö£ Ôùï /import
+Ôö£ ãÆ /leads
+Ôö£ ãÆ /leads/[id]
+Ôö£ Ôùï /leads/new
+Ôö£ Ôùï /login
+Ôö£ Ôùï /onboarding
+Ôö£ Ôùï /projects
+Ôö£ Ôùï /settings
+Ôö£ Ôùï /tickets
+Ôö£ ãÆ /tickets/[id]
+Ôöö Ôùï /users
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

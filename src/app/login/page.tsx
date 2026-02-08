@@ -23,6 +23,9 @@ export default function LoginPage() {
     setLoggingIn(true);
     setError(null);
     try {
+        if (!auth) {
+            throw new Error('Firebase Auth is not initialized. Please check your configuration.');
+        }
         const provider = new GoogleAuthProvider();
         await signInWithPopup(auth, provider);
         // On success, AuthContext will update and trigger redirect

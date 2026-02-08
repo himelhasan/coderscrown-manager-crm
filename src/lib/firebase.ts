@@ -12,23 +12,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-import { FirebaseApp } from 'firebase/app';
-import { Auth } from 'firebase/auth';
-
-let app: FirebaseApp | undefined;
-let auth: Auth | undefined;
-
-try {
-  // Check if config is valid (basic check)
-  if (!firebaseConfig.apiKey) {
-      console.warn('Firebase API Key is missing. Auth will not work.');
-  } else {
-      app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-      auth = getAuth(app);
-  }
-} catch (e) {
-  console.error('Firebase Initialization Error:', e);
-}
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
 
 export { app, auth };
 

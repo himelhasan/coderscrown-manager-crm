@@ -60,7 +60,6 @@ export default function OnboardingPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                   firebaseUid: user.uid,
-                  firebaseUid: user.uid,
                   email: user.email,
                   // displayName included in processedData
                   photoURL: user.photoURL,
