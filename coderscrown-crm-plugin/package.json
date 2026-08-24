@@ -1,0 +1,29 @@
+{
+  "name": "coderscrown-crm",
+  "version": "1.0.0",
+  "description": "CodersCrown CRM Plugin with React UI",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "format": "wp-scripts format",
+    "lint:js": "wp-scripts lint-js",
+    "packages-update": "wp-scripts packages-update"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@wordpress/element": "^5.0.0",
+    "@wordpress/api-fetch": "^6.0.0",
+    "@wordpress/components": "^23.0.0",
+    "@wordpress/i18n": "^4.0.0",
+    "@wordpress/url": "^3.0.0",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^2.0.0"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0",
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.0.0",
+    "postcss": "^8.0.0"
+  }
+}

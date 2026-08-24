@@ -1,10 +1,10 @@
 
-import dbConnect from '@/lib/db';
-import ApiKey from '@/lib/models/ApiKey';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../lib/db';
+import ApiKey from '../../../../../lib/models/ApiKey';
 
 export async function DELETE(
-  request: NextRequest,
+  _: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -12,7 +12,8 @@ export async function DELETE(
     const { id } = await params;
     await ApiKey.findByIdAndDelete(id);
     return NextResponse.json({ message: 'Key revoked' });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

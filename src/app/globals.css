@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../**/*.{ts,tsx}";
 
 :root {
   /* Light Theme */
@@ -94,7 +95,6 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
-  antialiased: true;
 }
 
 /* Glassmorphism Utilities */

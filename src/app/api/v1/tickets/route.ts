@@ -1,9 +1,7 @@
-
-import dbConnect from '@/lib/db';
-import '@/lib/models/Project'; // Ensure Project model is registered
-import Ticket from '@/lib/models/Ticket';
-import User from '@/lib/models/User';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../lib/db';
+import Ticket from '../../../../lib/models/Ticket';
+import User from '../../../../lib/models/User';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,11 +11,9 @@ export async function POST(request: NextRequest) {
 
     let targetUser;
 
-    // If client_id is provided (Admin creating for client), find that user
     if (client_id) {
         targetUser = await User.findById(client_id);
     } else if (firebaseUid) {
-        // Normal flow
         targetUser = await User.findOne({ firebaseUid });
     }
 
@@ -25,23 +21,27 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    const userIdStr = String(targetUser._id || targetUser.id);
+
     const ticket = await Ticket.create({
-        client: targetUser._id,
+        client: userIdStr,
+        client_id: userIdStr,
         project: body.project,
+        project_id: body.project,
         subject,
         type,
         description,
         priority,
         messages: [{
-            sender: targetUser._id, // Initial message from client (or admin appearing as client/system)
-            // Ideally if admin creates, sender should be admin, but for now simplify as "ticket description"
+            sender: userIdStr,
             content: description,
         }]
     });
 
     return NextResponse.json({ data: ticket }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -55,8 +55,9 @@ export async function DELETE(request: NextRequest) {
 
         await Ticket.findByIdAndDelete(id);
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -75,22 +76,19 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    let query: any = {};
+    const query: any = {};
     if (user.role === 'client') {
-        query.client = user._id;
+        const userIdStr = String(user._id || user.id);
+        query.$or = [{ client_id: userIdStr }, { client: userIdStr }];
     }
 
-    // Populate client details for admin view
-    console.log('Ticket Query:', JSON.stringify(query, null, 2));
-    const tickets = await Ticket.find(query)
-        .populate('client', 'displayName email photoURL')
-        .populate('project', 'name')
-        .sort({ updatedAt: -1 });
+    const tickets = await Ticket.find(query).sort({ updatedAt: -1 });
     
     console.log(`Found ${tickets.length} tickets`);
     return NextResponse.json({ data: tickets });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
     console.error('Error in GET /api/v1/tickets:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

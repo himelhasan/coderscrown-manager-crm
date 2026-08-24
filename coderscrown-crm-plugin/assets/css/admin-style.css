@@ -1,0 +1,274 @@
+/* CodersCrown CRM Admin Styles */
+
+/* Dashboard Stats Grid */
+.crm-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.crm-stat-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.crm-stat-icon {
+    font-size: 36px;
+}
+
+.crm-stat-content h3 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    color: #2271b1;
+}
+
+.crm-stat-content p {
+    margin: 5px 0 0;
+    color: #666;
+}
+
+/* Dashboard Grid */
+.crm-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.crm-dashboard-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.crm-dashboard-section h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #2271b1;
+    padding-bottom: 10px;
+}
+
+/* Filters */
+.crm-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.crm-filters form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.crm-count {
+    margin: 0;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Status Badges */
+.crm-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Lead Status Badges */
+.crm-badge-new {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.crm-badge-in_progress {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.crm-badge-contacted {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.crm-badge-waiting_response {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.crm-badge-qualified {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.crm-badge-not_interested {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+.crm-badge-converted {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+/* Project Status Badges */
+.crm-badge-planning {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.crm-badge-on_hold {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.crm-badge-completed {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.crm-badge-cancelled {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* Ticket Status Badges */
+.crm-badge-open {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.crm-badge-waiting_client {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.crm-badge-resolved {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.crm-badge-closed {
+    background: #e0e0e0;
+    color: #616161;
+}
+
+/* Priority Badges */
+.crm-priority-low {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.crm-priority-medium {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.crm-priority-high {
+    background: #ffe0b2;
+    color: #e65100;
+}
+
+.crm-priority-urgent {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* API Keys */
+.crm-badge-active {
+    background: #c8e6c9;
+    color: #2e7d32;
+}
+
+.crm-badge-inactive {
+    background: #e0e0e0;
+    color: #616161;
+}
+
+/* Ticket Messages */
+.crm-ticket-meta {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.crm-ticket-meta p {
+    margin: 5px 0;
+}
+
+.crm-ticket-description {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.crm-ticket-messages {
+    margin: 20px 0;
+}
+
+.crm-message {
+    background: #f9f9f9;
+    border-left: 4px solid #2271b1;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+}
+
+.crm-message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.crm-message-date {
+    color: #666;
+    font-size: 13px;
+}
+
+.crm-message-content {
+    line-height: 1.6;
+}
+
+.crm-add-message {
+    margin: 30px 0;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 782px) {
+    .crm-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .crm-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .crm-filters {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}

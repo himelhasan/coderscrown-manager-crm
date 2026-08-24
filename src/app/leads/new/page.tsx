@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Building2, Facebook, Globe, Instagram, Linkedin, Mail, Phone, Save, User } from 'lucide-react';
+import { ArrowLeft, Building2, Briefcase, Facebook, Globe, Instagram, Linkedin, Mail, Phone, Save, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -14,6 +14,7 @@ export default function NewLeadPage() {
     name: '',
     email: '',
     company_name: '',
+    industry: '',
     phone: '',
     website: '',
     linkedin_link: '',
@@ -28,7 +29,6 @@ export default function NewLeadPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Helper to ensure URL protocol
   const ensureProtocol = (url: string) => {
       if (!url) return '';
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -40,7 +40,6 @@ export default function NewLeadPage() {
     setLoading(true);
     setError(null);
 
-    // Process data to add protocol
     const processedData = {
         ...formData,
         website: ensureProtocol(formData.website),
@@ -57,7 +56,6 @@ export default function NewLeadPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(processedData)
       });
-
 
       const data = await res.json();
 
@@ -124,6 +122,20 @@ export default function NewLeadPage() {
                         className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
                         placeholder="e.g. Acme Corp"
                         value={formData.company_name}
+                        onChange={handleChange}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" /> Industry
+                    </label>
+                    <input 
+                        name="industry"
+                        type="text"
+                        className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                        placeholder="e.g. Software, E-commerce, Real Estate"
+                        value={formData.industry}
                         onChange={handleChange}
                     />
                 </div>

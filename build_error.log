@@ -1,0 +1,52 @@
+
+> n8n-crm@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.1.6
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/lib/db.ts
+Module not found: Can't resolve 'mongoose'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/leads/page.tsx
+
+./src/lib/models/ApiKey.ts
+Module not found: Can't resolve 'mongoose'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/api/v1/api-keys/route.ts
+
+./src/lib/models/Campaign.ts
+Module not found: Can't resolve 'mongoose'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/campaigns/page.tsx
+
+./src/lib/models/Lead.ts
+Module not found: Can't resolve 'mongoose'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/leads/page.tsx
+
+./src/lib/models/OutreachLog.ts
+Module not found: Can't resolve 'mongoose'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/leads/[id]/page.tsx
+
+
+> Build failed because of webpack errors

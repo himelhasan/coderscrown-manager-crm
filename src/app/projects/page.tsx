@@ -1,17 +1,22 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { Check, Edit, ExternalLink, FolderPlus, Loader2, Plus, Terminal, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProjectsPage() {
   const { user, role } = useAuth();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const initialFormState: any = { 
     name: '', 
@@ -19,28 +24,105 @@ export default function ProjectsPage() {
     link: '', 
     status: 'development', 
     image_link: '', 
-    budget: '',     // Will treat '' as undefined/null in payload
+    budget: '',
     tech_stack: [], 
-    deadline: '',   // Will treat '' as undefined/null in payload
+    deadline: '',
     approved: false 
   };
   const [formData, setFormData] = useState<any>(initialFormState);
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
         const res = await fetch('/api/v1/projects');
         const json = await res.json();
-        console.log('API Received Body:', json); // Assuming the user intended to log the response body
         setProjects(json.data || []);
-    } catch (e) {
-        console.error(e);
+    } catch {
+        
     } finally {
         setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchProjects();
+  }, [fetchProjects]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) setSelectedIds(filteredProjects.map((p: any) => p._id));
+    else setSelectedIds([]);
+  };
+
+  const handleSelectOne = (id: string) => {
+    if (selectedIds.includes(id)) setSelectedIds(selectedIds.filter(i => i !== id));
+    else setSelectedIds([...selectedIds, id]);
+  };
+
+  const handleBulkStatusChange = async (status: string) => {
+    if (selectedIds.length === 0) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`Updating ${selectedIds.length} projects...`);
+    try {
+      const res = await fetch('/api/v1/projects/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'update', updateData: { status } })
+      });
+      if (res.ok) {
+        toast.success(`Updated ${selectedIds.length} projects to ${status}`, { id: t });
+        setSelectedIds([]);
+        fetchProjects();
+      } else {
+        toast.error('Failed to update projects', { id: t });
+      }
+    } catch {
+      toast.error('Error updating projects', { id: t });
+    } finally { setBulkProcessing(false); }
+  };
+
+  const handleBulkApproval = async (approved: boolean) => {
+    if (selectedIds.length === 0) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`${approved ? 'Approving' : 'Unapproving'} ${selectedIds.length} projects...`);
+    try {
+      const res = await fetch('/api/v1/projects/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'update', updateData: { approved } })
+      });
+      if (res.ok) {
+        toast.success(`${approved ? 'Approved' : 'Unapproved'} ${selectedIds.length} projects`, { id: t });
+        setSelectedIds([]);
+        fetchProjects();
+      } else {
+        toast.error('Failed to update projects', { id: t });
+      }
+    } catch {
+      toast.error('Error updating projects', { id: t });
+    } finally { setBulkProcessing(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Delete ${selectedIds.length} projects? This cannot be undone.`)) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`Deleting ${selectedIds.length} projects...`);
+    try {
+      const res = await fetch('/api/v1/projects/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'delete' })
+      });
+      if (res.ok) {
+        toast.success(`Deleted ${selectedIds.length} projects`, { id: t });
+        setSelectedIds([]);
+        fetchProjects();
+      } else {
+        toast.error('Failed to delete projects', { id: t });
+      }
+    } catch {
+      toast.error('Error deleting projects', { id: t });
+    } finally { setBulkProcessing(false); }
   };
 
   const handleCreate = async () => {
@@ -71,8 +153,8 @@ export default function ProjectsPage() {
         } else {
             toast.error('Failed to create project', { id: loadingToast });
         }
-    } catch (e) {
-        console.error(e);
+    } catch {
+        
         toast.error('Error creating project', { id: loadingToast });
     }
   };
@@ -94,8 +176,8 @@ export default function ProjectsPage() {
        } else {
            toast.error('Failed to update project', { id: loadingToast });
        }
-   } catch (e) {
-       console.error(e);
+   } catch {
+       
        toast.error('Error updating project', { id: loadingToast });
    }
  };
@@ -111,8 +193,8 @@ export default function ProjectsPage() {
           } else {
             toast.error('Failed to delete project', { id: loadingToast });
           }
-      } catch (e) { 
-          console.error(e); 
+      } catch { 
+           
           toast.error('Error deleting project', { id: loadingToast });
       }
   };
@@ -135,7 +217,7 @@ export default function ProjectsPage() {
           budget: project.budget,
           tech_stack: project.tech_stack || [],
           deadline: project.deadline,
-          approved: !!project.approved // Ensure boolean
+          approved: !!project.approved
       });
       setShowModal(true);
   };
@@ -148,14 +230,8 @@ export default function ProjectsPage() {
 
   const filteredProjects = role === 'admin' 
     ? projects 
-    : projects.filter(p => p.client_id === user?.uid || p.approved); 
-    // Clients see their own or approved ones? 
-    // Actually user said "clients projects needs to be approved by admin". 
-    // Usually client sees their own even if not approved. Public sees approved.
-    console.log('User:', user?.uid, 'Role:', role);
-    console.log('Projects:', projects.length);
-    console.log('Filtered:', filteredProjects.length);
-    
+    : projects.filter(p => p.client_id === user?.uid || p.approved);
+
   return (
     <div className="space-y-8">
         <div className="flex items-center justify-between">
@@ -163,7 +239,6 @@ export default function ProjectsPage() {
                 <h2 className="text-3xl font-bold tracking-tight">Projects</h2>
                 <p className="text-muted-foreground mt-1">Manage your ongoing development projects.</p>
             </div>
-            {/* Allow creating if client or admin */}
             {(role === 'client' || role === 'admin') && (
                 <button 
                     onClick={openCreateModal}
@@ -173,6 +248,52 @@ export default function ProjectsPage() {
                 </button>
             )}
         </div>
+
+        {/* Bulk Action Toolbar */}
+        {selectedIds.length > 0 && role === 'admin' && (
+          <div className="sticky top-4 z-20 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/40 bg-card p-4 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                {selectedIds.length}
+              </span>
+              <span>Project(s) Selected</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                onChange={(e) => { if (e.target.value) handleBulkStatusChange(e.target.value); }}
+                disabled={bulkProcessing}
+                defaultValue=""
+                className="h-9 rounded-lg border border-input bg-background px-3 text-xs font-medium outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="" disabled>-- Bulk Status --</option>
+                <option value="development">Set Development</option>
+                <option value="live">Set Live</option>
+                <option value="archived">Set Archived</option>
+              </select>
+
+              <button
+                onClick={() => handleBulkApproval(true)}
+                disabled={bulkProcessing}
+                className="flex items-center gap-1.5 h-9 rounded-lg bg-green-500/10 text-green-600 border border-green-500/20 px-3 text-xs font-semibold hover:bg-green-500/20 disabled:opacity-50"
+              >
+                <Check className="h-3.5 w-3.5" /> Approve All
+              </button>
+
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkProcessing}
+                className="flex items-center gap-1.5 h-9 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 px-3 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Bulk Delete
+              </button>
+
+              <button onClick={() => setSelectedIds([])} className="h-9 rounded-lg border border-border px-3 text-xs font-medium hover:bg-muted">
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
 
         {loading ? (
              <div className="flex justify-center p-12">
@@ -188,8 +309,23 @@ export default function ProjectsPage() {
             </div>
         ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredProjects.map((project) => (
-                    <div key={project._id} className="relative group rounded-xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+                {filteredProjects.map((project) => {
+                  const isSelected = selectedIds.includes(project._id);
+                  return (
+                    <div key={project._id} className={`relative group rounded-xl border bg-card shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col ${isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}>
+                         {/* Selection Checkbox (Admin only) */}
+                         {role === 'admin' && (
+                           <div className="absolute top-3 left-3 z-10">
+                             <input
+                               type="checkbox"
+                               checked={isSelected}
+                               onChange={() => handleSelectOne(project._id)}
+                               className="h-4 w-4 rounded border-gray-300 cursor-pointer shadow-sm"
+                               onClick={(e) => e.stopPropagation()}
+                             />
+                           </div>
+                         )}
+
                          {/* Image Cover */}
                          {project.image_link && (
                             <div className="h-32 w-full bg-muted overflow-hidden relative">
@@ -224,7 +360,6 @@ export default function ProjectsPage() {
                                                 'bg-gray-500/10 text-gray-500'}`}>
                                                 {project.status}
                                             </span>
-                                            {/* Fallback pending badge if no image */}
                                             {!project.image_link && !project.approved && (
                                                  <span className="text-[10px] bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-medium">Pending</span>
                                             )}
@@ -247,11 +382,13 @@ export default function ProjectsPage() {
                             <div className="space-y-3 text-xs">
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Budget:</span>
-                                    <span className="font-medium">{project.budget || 'N/A'}</span>
+                                    <span className="font-medium">{project.budget ? `$${project.budget}` : 'N/A'}</span>
                                 </div>
-                                 <div className="flex justify-between">
+                                  <div className="flex justify-between">
                                     <span className="text-muted-foreground">Deadline:</span>
-                                    <span className="font-medium">{project.deadline ? new Date(project.deadline).toLocaleDateString() : 'N/A'}</span>
+                                    <span className="font-medium">
+                                        {project.deadline ? (mounted ? new Date(project.deadline).toLocaleDateString() : '...') : 'N/A'}
+                                    </span>
                                 </div>
                                 {project.tech_stack && project.tech_stack.length > 0 && (
                                     <div className="flex flex-wrap gap-1 pt-1">
@@ -303,8 +440,24 @@ export default function ProjectsPage() {
                             </div>
                          )}
                     </div>
-                ))}
+                  );
+                })}
             </div>
+        )}
+
+        {/* Bulk Select All Bar */}
+        {role === 'admin' && filteredProjects.length > 0 && (
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={selectedIds.length === filteredProjects.length && filteredProjects.length > 0}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+            />
+            <span>
+              {selectedIds.length === 0 ? 'Select all projects for bulk actions' : `${selectedIds.length} of ${filteredProjects.length} selected`}
+            </span>
+          </div>
         )}
 
         {/* Modal */}
@@ -351,10 +504,7 @@ export default function ProjectsPage() {
                                 placeholder="Image Link (URL)"
                                 type="url"
                                 value={formData.image_link || ''}
-                                onChange={e => {
-                                    console.log('Image Link Change:', e.target.value);
-                                    setFormData({...formData, image_link: e.target.value});
-                                }}
+                                onChange={e => setFormData({...formData, image_link: e.target.value})}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -365,7 +515,6 @@ export default function ProjectsPage() {
                                 value={formData.budget === undefined || formData.budget === null ? '' : formData.budget}
                                 onChange={e => {
                                     const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
-                                    console.log('Budget Change:', e.target.value, '->', val);
                                     setFormData({...formData, budget: val});
                                 }}
                             />
@@ -390,7 +539,6 @@ export default function ProjectsPage() {
                             }}
                         />
                         
-                        {/* Admin Approval Toggle */}
                         {role === 'admin' && (
                             <div className="flex items-center gap-2 pt-2">
                                 <input 

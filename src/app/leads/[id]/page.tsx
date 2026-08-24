@@ -1,13 +1,12 @@
-
 export const dynamic = 'force-dynamic';
 
-import OutreachSettings from '@/components/leads/OutreachSettings';
-import dbConnect from '@/lib/db';
-import Lead from '@/lib/models/Lead';
-import OutreachLog from '@/lib/models/OutreachLog';
 import { Building2, Facebook, Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import OutreachSettings from '../../../components/leads/OutreachSettings';
+import dbConnect from '../../../lib/db';
+import Lead from '../../../lib/models/Lead';
+import OutreachLog from '../../../lib/models/OutreachLog';
 
 async function getLead(id: string) {
   await dbConnect();
@@ -15,7 +14,7 @@ async function getLead(id: string) {
   if(!lead) return null;
   
   // Fetch logs too
-  const logs = await OutreachLog.find({ lead_id: id }).sort({ sent_at: -1 });
+  const logs = await OutreachLog.find({ lead_id: id });
   
   return { 
       lead: JSON.parse(JSON.stringify(lead)),
@@ -127,12 +126,12 @@ export default async function LeadDetailPage({
                                   }`}></span>
                                   <div className="flex items-center justify-between">
                                       <p className="text-sm font-medium">{log.email_subject}</p>
-                                      <span className="text-xs text-muted-foreground">{new Date(log.sent_at).toLocaleString()}</span>
+                                      <span className="text-xs text-muted-foreground">{new Date(log.sent_at).toISOString().replace('T', ' ').slice(0, 16)}</span>
                                   </div>
                                   <p className="mt-1 text-xs text-muted-foreground uppercase">{log.status} • {log.outreach_type.replace('_', ' ')}</p>
                                   {log.email_body_preview && (
                                      <p className="mt-2 text-sm text-muted-foreground bg-muted/30 p-2 rounded-lg italic">
-                                        "{log.email_body_preview}..."
+                                        &quot;{log.email_body_preview}...&quot;
                                      </p>
                                   )}
                               </div>

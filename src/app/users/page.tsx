@@ -1,9 +1,9 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { Loader2, Shield, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function UsersPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -11,17 +11,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-      if (!authLoading) {
-          if (role !== 'admin') {
-              router.push('/');
-              return;
-          }
-          fetchUsers();
-      }
-  }, [role, authLoading, router]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
       try {
           // We need to pass auth token
           if (!user) return;
@@ -38,7 +28,17 @@ export default function UsersPage() {
       } finally {
           setLoading(false);
       }
-  };
+  }, [user]); // Depend on 'user' because it's used inside
+
+  useEffect(() => {
+      if (!authLoading) {
+          if (role !== 'admin') {
+              router.push('/');
+              return;
+          }
+          fetchUsers();
+      }
+  }, [role, authLoading, router, fetchUsers]); // Add fetchUsers to dependencies
 
   const updateUserRole = async (userId: string, newRole: string) => {
       try {

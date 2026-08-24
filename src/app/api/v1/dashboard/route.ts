@@ -1,28 +1,37 @@
-
-import dbConnect from '@/lib/db';
-import Lead from '@/lib/models/Lead';
-import OutreachLog from '@/lib/models/OutreachLog';
-import Project from '@/lib/models/Project';
-import Ticket from '@/lib/models/Ticket';
-import User from '@/lib/models/User';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../lib/db';
+import Lead from '../../../../lib/models/Lead';
+import OutreachLog from '../../../../lib/models/OutreachLog';
+import Project from '../../../../lib/models/Project';
+import Ticket from '../../../../lib/models/Ticket';
+import User from '../../../../lib/models/User';
 
 export async function GET(request: NextRequest) {
     try {
         const uid = request.headers.get('X-User-UID');
+        const hasAuth = !!request.headers.get('Authorization');
+        
+        console.log('Dashboard Diagnostic - Headers:', {
+            'x-user-uid': uid ? 'PRESENT' : 'MISSING',
+            'authorization': hasAuth ? 'PRESENT' : 'MISSING'
+        });
+
         if (!uid) {
              return NextResponse.json({ error: 'Missing X-User-UID Header' }, { status: 401 });
         }
 
         await dbConnect();
+        console.log('Dashboard Diagnostic - DB Connected, UID:', uid);
 
         // 1. Get User Role
         const user = await User.findOne({ firebaseUid: uid });
         if (!user) {
+             console.log('Dashboard Diagnostic - User not found for UID:', uid);
              return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
+        console.log('Dashboard Diagnostic - User found:', user.email, 'Role:', user.role);
 
-        const role = user.role || 'client'; // Default to client if undefined
+        const role = user.role || 'client';
 
         let data: any = {};
 
@@ -31,13 +40,12 @@ export async function GET(request: NextRequest) {
             const totalLeads = await Lead.countDocuments({});
             const leadsInProgress = await Lead.countDocuments({ status: { $in: ['in_progress', 'contacted', 'waiting_response'] } });
             const convertedLeads = await Lead.countDocuments({ status: 'converted' });
-            const activeCampaigns = await Lead.countDocuments({ 'cold_outreach.campaign_status': 'active' }); // Approximation
+            const activeCampaigns = await Lead.countDocuments({ 'cold_outreach.campaign_status': 'active' });
             
             const totalSent = await OutreachLog.countDocuments({ status: 'sent' });
             const totalReplies = await OutreachLog.countDocuments({ status: 'replied' });
 
-            // New Data for Dashboard
-            const newTickets = await Ticket.find({}).sort({ createdAt: -1 }).limit(5).populate('client', 'displayName email');
+            const newTickets = await Ticket.find({}).sort({ updatedAt: -1 }).limit(5);
             const ongoingProjects = await Project.find({ status: { $in: ['development', 'live'] } }).sort({ updatedAt: -1 }).limit(5);
 
             data = {
@@ -55,15 +63,15 @@ export async function GET(request: NextRequest) {
             };
         } else {
             // Client View: Restricted Stats
-            // Ticket uses 'client' (ObjectId), Project uses 'client_id' (String/FirebaseUID) - legacy inconsistency
-            const activeTickets = await Ticket.countDocuments({ status: { $ne: 'closed' }, client: user._id }); 
-            const solvedTickets = await Ticket.countDocuments({ status: 'closed', client: user._id });
+            const userIdStr = String(user._id || user.id);
+            const activeTickets = await Ticket.countDocuments({ status: { $ne: 'closed' }, $or: [{ client_id: userIdStr }, { client: userIdStr }] }); 
+            const solvedTickets = await Ticket.countDocuments({ status: 'closed', $or: [{ client_id: userIdStr }, { client: userIdStr }] });
             
-            // Client Projects - assuming client_id is firebaseUid based on Project model string type
+            // Client Projects
             const myProjects = await Project.find({ client_id: uid, status: { $ne: 'archived' } });
 
             // Tickets List
-            const myTickets = await Ticket.find({ client: user._id }).sort({ updatedAt: -1 }).limit(5);
+            const myTickets = await Ticket.find({ $or: [{ client_id: userIdStr }, { client: userIdStr }] }).sort({ updatedAt: -1 }).limit(5);
 
             data = {
                 role,
@@ -78,7 +86,8 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data);
 
-    } catch (e: any) {
-        return NextResponse.json({ error: e.message }, { status: 500 });
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

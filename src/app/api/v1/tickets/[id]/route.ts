@@ -1,17 +1,13 @@
-
-import dbConnect from '@/lib/db';
-import Ticket from '@/lib/models/Ticket';
-import User from '@/lib/models/User';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../lib/db';
+import Ticket from '../../../../../lib/models/Ticket';
+import User from '../../../../../lib/models/User';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect();
     const { id } = await params;
-    const ticket = await Ticket.findById(id)
-        .populate('client', 'displayName email photoURL company_name')
-        .populate('project', 'name')
-        .populate('messages.sender', 'displayName email photoURL role');
+    const ticket = await Ticket.findById(id);
 
     if (!ticket) {
         return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
@@ -39,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (content) {
         update.$push = {
             messages: {
-                sender: user._id,
+                sender: String(user._id || user.id),
                 content,
                 createdAt: new Date()
             }
@@ -50,8 +46,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         update.status = status;
     }
 
-    const ticket = await Ticket.findByIdAndUpdate(id, update, { new: true })
-        .populate('messages.sender', 'displayName email photoURL role');
+    const ticket = await Ticket.findByIdAndUpdate(id, update, { new: true });
 
     return NextResponse.json({ data: ticket });
   } catch (error: any) {

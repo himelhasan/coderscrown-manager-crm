@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
-import { auth } from '@/lib/firebase';
-import { cn } from '@/lib/utils';
 import { Crown, FolderKanban, LayoutDashboard, LogOut, MessageSquare, Send, Settings, UserCircle, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
+import { auth } from '../lib/firebase';
+import { cn } from '../lib/utils';
 import ThemeToggle from './ThemeToggle';
 
 export default function Sidebar() {

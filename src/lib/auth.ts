@@ -21,7 +21,10 @@ export async function isAuthenticated(req: NextRequest): Promise<boolean> {
   
   if (key) {
       // Async update metrics
-      ApiKey.updateOne({ _id: key._id }, { last_used_at: new Date() }).exec();
+      const keyId = key.id || key._id;
+      if (keyId) {
+          ApiKey.findByIdAndUpdate(keyId, { last_used_at: new Date() });
+      }
       return true;
   }
   return false;

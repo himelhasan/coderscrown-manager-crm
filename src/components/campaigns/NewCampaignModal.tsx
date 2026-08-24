@@ -3,6 +3,7 @@
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 interface NewCampaignModalProps {
   isOpen: boolean;
@@ -16,7 +17,9 @@ export default function NewCampaignModal({ isOpen, onClose }: NewCampaignModalPr
   
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
+    target_audience: '',
+    status: 'active'
   });
 
   if (!isOpen) return null;
@@ -39,9 +42,10 @@ export default function NewCampaignModal({ isOpen, onClose }: NewCampaignModalPr
         throw new Error(data.error || 'Failed to create campaign');
       }
 
+      toast.success('Campaign created successfully!');
       router.refresh();
       onClose();
-      setFormData({ name: '', description: '' });
+      setFormData({ name: '', description: '', target_audience: '', status: 'active' });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -67,24 +71,50 @@ export default function NewCampaignModal({ isOpen, onClose }: NewCampaignModalPr
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1.5">Campaign Name</label>
+            <label htmlFor="name" className="block text-sm font-medium mb-1.5">Campaign Name *</label>
             <input
               type="text"
               id="name"
               required
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
-              placeholder="e.g. Q1 Cold Outreach"
+              placeholder="e.g. Q3 B2B Cold Outreach"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
 
           <div>
+            <label htmlFor="target_audience" className="block text-sm font-medium mb-1.5">Target Audience</label>
+            <input
+              type="text"
+              id="target_audience"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              placeholder="e.g. SaaS Founders, Agency Owners"
+              value={formData.target_audience}
+              onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium mb-1.5">Initial Status</label>
+            <select
+              id="status"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            >
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+
+          <div>
             <label htmlFor="description" className="block text-sm font-medium mb-1.5">Description (Optional)</label>
             <textarea
               id="description"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
-              placeholder="What is this campaign about?"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none min-h-[90px]"
+              placeholder="Campaign objectives & details..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />

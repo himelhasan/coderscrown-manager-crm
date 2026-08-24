@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Papa from 'papaparse';
 import { useState } from 'react';
 
-const REQUIRED_FIELDS = ['email', 'name'];
+const _REQUIRED_FIELDS_UNUSED = ['email', 'name'];
 const SYSTEM_FIELDS = [
   { label: 'Name', key: 'name', required: true },
   { label: 'Email', key: 'email', required: true },

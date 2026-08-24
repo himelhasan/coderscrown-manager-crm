@@ -1,27 +1,20 @@
 'use client';
 
-import StatsCard from '@/components/dashboard/StatsCard';
-import { useAuth } from '@/context/AuthContext';
 import { BarChart3, FolderKanban, Inbox, MessageSquare, Send, Users } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import NewTickets from './NewTickets';
 import OngoingProjects from './OngoingProjects';
+import StatsCard from './StatsCard';
 
 export default function DashboardClient() {
   const { user, role, loading: authLoading } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-        fetchDashboardData();
-    } else if (!authLoading) {
-        setLoading(false); // No user, stop loading (will redirect or show empty)
-    }
-  }, [user, authLoading]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
         const res = await fetch('/api/v1/dashboard', {
             headers: {
@@ -35,7 +28,16 @@ export default function DashboardClient() {
     } finally {
         setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    setMounted(true);
+    if (user) {
+        fetchDashboardData();
+    } else if (!authLoading) {
+        setLoading(false); // No user, stop loading (will redirect or show empty)
+    }
+  }, [user, authLoading, fetchDashboardData]);
 
   if (authLoading || loading) {
       return <div className="p-8 text-center text-muted-foreground">Loading dashboard...</div>;
@@ -100,14 +102,14 @@ export default function DashboardClient() {
             <>
                 <StatsCard 
                     title="Total Leads" 
-                    value={data?.stats?.totalLeads?.toLocaleString() || '0'} 
+                    value={mounted ? (data?.stats?.totalLeads?.toLocaleString() || '0') : '...'} 
                     change="All time" 
                     trend="neutral"
                     icon={Users} 
                 />
                 <StatsCard 
                     title="Emails Sent" 
-                    value={data?.stats?.totalSent?.toLocaleString() || '0'} 
+                    value={mounted ? (data?.stats?.totalSent?.toLocaleString() || '0') : '...'} 
                     change={`${(data?.stats?.totalSent > 0 ? (data?.stats?.totalReplies / data?.stats?.totalSent * 100).toFixed(1) : 0)}% Reply Rate`}
                     trend="up"
                     icon={Send} 
@@ -169,7 +171,9 @@ export default function DashboardClient() {
                                         <div className={`h-2 w-2 rounded-full ${ticket.status === 'open' ? 'bg-green-500' : 'bg-gray-300'}`} />
                                         <div>
                                             <p className="font-medium text-sm">{ticket.subject}</p>
-                                            <p className="text-xs text-muted-foreground capitalize">{ticket.status} • {new Date(ticket.createdAt).toLocaleDateString()}</p>
+                                            <p className="text-xs text-muted-foreground capitalize">
+                                                {ticket.status} • {mounted ? new Date(ticket.createdAt).toLocaleDateString() : '...'}
+                                            </p>
                                         </div>
                                     </div>
                                     <Link href={`/tickets/${ticket._id}`} className="text-xs bg-secondary px-2 py-1 rounded hover:bg-secondary/80">

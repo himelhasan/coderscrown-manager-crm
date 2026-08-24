@@ -1,0 +1,59 @@
+
+> n8n-crm@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.1.6
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+
+Failed to compile.
+
+./src/app/projects/page.tsx
+12:19  Error: 'setMounted' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+197:33  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/app/tickets/page.tsx
+43:6  Warning: React Hook useEffect has missing dependencies: 'fetchProjects' and 'fetchTickets'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/tickets/[id]/page.tsx
+24:6  Warning: React Hook useEffect has a missing dependency: 'fetchTicket'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/users/page.tsx
+22:6  Warning: React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+93:38  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/components/dashboard/DashboardClient.tsx
+24:6  Warning: React Hook useEffect has a missing dependency: 'fetchDashboardData'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/leads/OutreachSettings.tsx
+9:10  Error: 'isUpdating' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+9:22  Error: 'setIsUpdating' is assigned a value but never used. Allowed unused vars must match /^_/u.  @typescript-eslint/no-unused-vars
+
+./src/components/Sidebar.tsx
+101:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./src/lib/models/ApiKey.ts
+17:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/Campaign.ts
+22:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/Lead.ts
+43:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/OutreachLog.ts
+21:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/Project.ts
+23:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/Ticket.ts
+20:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+./src/lib/models/User.ts
+25:1  Warning: Assign object to a variable before exporting as module default  import/no-anonymous-default-export
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules

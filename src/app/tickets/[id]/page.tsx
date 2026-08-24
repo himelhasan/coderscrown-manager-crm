@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { ArrowLeft, ExternalLink, Loader2, Send } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../../context/AuthContext';
 
 export default function TicketDetailPage() {
   const { id } = useParams();
@@ -16,14 +16,13 @@ export default function TicketDetailPage() {
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollToBottom = useCallback(() => {
+    setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, []);
 
-  useEffect(() => {
-      if (!authLoading && user) {
-          fetchTicket();
-      }
-  }, [user, authLoading, id]);
-
-  const fetchTicket = async () => {
+  const fetchTicket = useCallback(async () => {
       try {
           const res = await fetch(`/api/v1/tickets/${id}`);
           if (res.ok) {
@@ -40,13 +39,13 @@ export default function TicketDetailPage() {
       } finally {
           setLoading(false);
       }
-  };
+  }, [id, router, scrollToBottom]);
 
-  const scrollToBottom = () => {
-      setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-  };
+  useEffect(() => {
+      if (!authLoading && user) {
+          fetchTicket();
+      }
+  }, [user, authLoading, fetchTicket]);
 
   const handleReply = async (e: React.FormEvent) => {
       e.preventDefault();

@@ -1,9 +1,9 @@
 
-import dbConnect from '@/lib/db';
-import Project from '@/lib/models/Project';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../lib/db';
+import Project from '../../../../../lib/models/Project';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     await dbConnect();
     // Fetch all projects, you can add filters here if needed (e.g., status='live')
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     // Additional requirement: C-O-R-S. Next.js App Router handles CORS via headers in response or middleware.
     // For a simple route handler, we can set headers.
 
-    const projects = await Project.find({ status: { $ne: 'archived' } }).sort({ createdAt: -1 });
+    const projects = await Project.find({ status: { $ne: 'archived' } });
 
     const response = NextResponse.json({ data: projects });
 
@@ -24,12 +24,13 @@ export async function GET(request: NextRequest) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(_request: NextRequest) {
     const response = NextResponse.json({}, { status: 200 });
     response.headers.set('Access-Control-Allow-Origin', '*');
     response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');

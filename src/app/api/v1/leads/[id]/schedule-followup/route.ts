@@ -1,7 +1,7 @@
 
-import dbConnect from '@/lib/db';
-import Lead from '@/lib/models/Lead';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../../lib/db';
+import Lead from '../../../../../../lib/models/Lead';
 
 export async function POST(
   request: NextRequest,
@@ -29,8 +29,7 @@ export async function POST(
         { 
             $set: updateFields,
             ...(body.increment_sequence ? { $inc: { 'cold_outreach.followup_sequence_number': 1 } } : {})
-        },
-        { new: true }
+        }
     );
 
     if (!lead) {

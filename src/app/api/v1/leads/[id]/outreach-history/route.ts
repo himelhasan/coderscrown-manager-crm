@@ -1,8 +1,8 @@
 
-import dbConnect from '@/lib/db';
-import Lead from '@/lib/models/Lead';
-import OutreachLog from '@/lib/models/OutreachLog';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../../lib/db';
+import Lead from '../../../../../../lib/models/Lead';
+import OutreachLog from '../../../../../../lib/models/OutreachLog';
 
 export async function GET(
   request: NextRequest,
@@ -12,7 +12,7 @@ export async function GET(
     await dbConnect();
     const { id } = await params;
 
-    const logs = await OutreachLog.find({ lead_id: id }).sort({ sent_at: -1 });
+    const logs = await OutreachLog.find({ lead_id: id });
 
     return NextResponse.json({ data: logs });
   } catch (error: any) {

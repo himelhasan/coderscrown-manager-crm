@@ -1,9 +1,9 @@
 'use client';
 
-import { auth } from '@/lib/firebase';
 import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../lib/firebase';
 
 interface AuthContextType {
   user: FirebaseUser | null;
@@ -42,6 +42,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // 2. Check if auth is initialized
     if (!auth) {
+        console.error('Firebase Auth not initialized. Check your environment variables.');
         setLoading(false);
         return () => clearTimeout(timer);
     }
@@ -62,15 +63,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     'X-User-UID': firebaseUser.uid
                 }
             });
+            console.log('Profile fetch status:', res.status);
             if (res.ok) {
                 const data = await res.json();
                 setRole(data.user.role || 'client');
                 setUserProfile(data.user);
             } else if (res.status === 404) {
                  setUserProfile(null); 
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                console.error('Failed to fetch user profile:', res.status, errorData);
+                // On cPanel, if this fails with 401 or 500, it's often an environment config issue.
             }
         } catch (e) {
-            console.error('Failed to fetch user profile', e);
+            console.error('Failed to fetch user profile exception:', e);
         }
       } else {
         setRole(null);

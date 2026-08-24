@@ -1,0 +1,71 @@
+
+> n8n-crm@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.1.6
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Linting and checking validity of types ...
+
+   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+   The following mandatory changes were made to your tsconfig.json:
+
+   	- jsx was set to preserve (next.js implements its own optimized jsx transform)
+
+ Ô¿» ESLint: Cannot find module 'E:\business\coderscrown\n8n-crm\node_modules\eslint-config-next\core-web-vitals' imported from E:\business\coderscrown\n8n-crm\eslint.config.mjs Did you mean to import "eslint-config-next/core-web-vitals.js"?
+   Collecting page data ...
+   Generating static pages (0/24) ...
+   Generating static pages (6/24) 
+User: undefined Role: null
+Projects: 0
+Filtered: 0
+   Generating static pages (12/24) 
+   Generating static pages (18/24) 
+ Ô£ô Generating static pages (24/24)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                               Size     First Load JS
+Ôöî Ôùï /                                     4.12 kB         158 kB
+Ôö£ Ôùï /_not-found                           979 B           106 kB
+Ôö£ ãÆ /api/v1/api-keys                      174 B           106 kB
+Ôö£ ãÆ /api/v1/api-keys/[id]                 174 B           106 kB
+Ôö£ ãÆ /api/v1/campaigns                     174 B           106 kB
+Ôö£ ãÆ /api/v1/campaigns/[id]                174 B           106 kB
+Ôö£ ãÆ /api/v1/dashboard                     174 B           106 kB
+Ôö£ ãÆ /api/v1/health                        174 B           106 kB
+Ôö£ ãÆ /api/v1/leads                         174 B           106 kB
+Ôö£ ãÆ /api/v1/leads/[id]                    174 B           106 kB
+Ôö£ ãÆ /api/v1/leads/[id]/outreach-history   174 B           106 kB
+Ôö£ ãÆ /api/v1/leads/[id]/outreach-status    174 B           106 kB
+Ôö£ ãÆ /api/v1/leads/[id]/schedule-followup  174 B           106 kB
+Ôö£ ãÆ /api/v1/projects                      174 B           106 kB
+Ôö£ ãÆ /api/v1/projects/public               174 B           106 kB
+Ôö£ ãÆ /api/v1/tickets                       174 B           106 kB
+Ôö£ ãÆ /api/v1/tickets/[id]                  174 B           106 kB
+Ôö£ ãÆ /api/v1/users                         174 B           106 kB
+Ôö£ ãÆ /api/v1/users/me                      174 B           106 kB
+Ôö£ ãÆ /api/v1/users/sync                    174 B           106 kB
+Ôö£ ãÆ /campaigns                            2.94 kB         113 kB
+Ôö£ Ôùï /import                               10.3 kB         116 kB
+Ôö£ ãÆ /leads                                4.05 kB         155 kB
+Ôö£ ãÆ /leads/[id]                           1.93 kB         112 kB
+Ôö£ Ôùï /leads/new                            2.83 kB         112 kB
+Ôö£ Ôùï /login                                3.27 kB         145 kB
+Ôö£ Ôùï /onboarding                           2.48 kB         144 kB
+Ôö£ Ôùï /projects                             5.43 kB         152 kB
+Ôö£ Ôùï /settings                             4.58 kB         146 kB
+Ôö£ Ôùï /tickets                              4.05 kB         155 kB
+Ôö£ ãÆ /tickets/[id]                         3.68 kB         154 kB
+Ôöö Ôùï /users                                3.13 kB         144 kB
++ First Load JS shared by all             105 kB
+  Ôö£ chunks/4bd1b696-321b434db3593595.js   52.9 kB
+  Ôö£ chunks/517-a0d67c066eea9060.js        50.5 kB
+  Ôöö other shared chunks (total)           1.98 kB
+
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

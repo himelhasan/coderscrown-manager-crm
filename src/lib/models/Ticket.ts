@@ -1,50 +1,61 @@
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
-import mongoose, { Document, Schema } from 'mongoose';
-
-export interface ITicket extends Document {
-  client: mongoose.Types.ObjectId; // Reference to User
-  project?: mongoose.Types.ObjectId; // Reference to Project
-  subject: string;
-  type: 'website_development' | 'maintenance' | 'update' | 'other';
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high';
-  description: string;
-  messages: {
-      sender: mongoose.Types.ObjectId; // User ID
-      senderModel: 'User'; // Just for clarity, we only have User model now
-      content: string;
-      createdAt: Date;
-  }[];
-  createdAt: Date;
-  updatedAt: Date;
+export interface ITicketMessage {
+  _id?: string;
+  sender: string;
+  sender_id?: string;
+  content: string;
+  createdAt?: Date;
 }
 
-const TicketSchema: Schema = new Schema({
-  client: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  project: { type: Schema.Types.ObjectId, ref: 'Project' },
-  subject: { type: String, required: true },
-  type: { 
-      type: String, 
-      enum: ['website_development', 'maintenance', 'update', 'other'], 
-      required: true 
-  },
-  status: { 
-      type: String, 
-      enum: ['open', 'in_progress', 'resolved', 'closed'], 
-      default: 'open' 
-  },
-  priority: { 
-      type: String, 
-      enum: ['low', 'medium', 'high'], 
-      default: 'medium' 
-  },
-  description: { type: String },
-  messages: [{
-      sender: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-      content: { type: String, required: true },
-      createdAt: { type: Date, default: Date.now }
-  }]
-}, { timestamps: true });
+export interface ITicket {
+  id?: string;
+  _id?: string;
+  client_id?: string;
+  client?: string;
+  project_id?: string;
+  project?: string;
+  subject: string;
+  type: string;
+  status: string;
+  priority: string;
+  description: string;
+  messages?: ITicketMessage[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
-// Helper to make sure we don't recompile model on hot reload
-export default mongoose.models.Ticket || mongoose.model<ITicket>('Ticket', TicketSchema);
+export interface ITicketDocument extends Omit<ITicket, 'id' | '_id'>, Document {}
+
+const TicketMessageSchema = new Schema<ITicketMessage>(
+  {
+    sender: { type: String, required: true },
+    sender_id: { type: String },
+    content: { type: String, required: true },
+  },
+  { timestamps: true }
+);
+
+const TicketSchema = new Schema<ITicketDocument>(
+  {
+    client_id: { type: String, index: true },
+    client: { type: String },
+    project_id: { type: String },
+    project: { type: String },
+    subject: { type: String, required: true },
+    type: { type: String, default: 'support' },
+    status: { type: String, default: 'open' },
+    priority: { type: String, default: 'medium' },
+    description: { type: String, required: true },
+    messages: { type: [TicketMessageSchema], default: [] },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+const Ticket: Model<ITicketDocument> = mongoose.models.Ticket || mongoose.model<ITicketDocument>('Ticket', TicketSchema);
+
+export default Ticket;

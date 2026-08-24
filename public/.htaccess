@@ -1,0 +1,14 @@
+# Handle Authorization Header stripping in Apache
+RewriteEngine On
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+# Optional: Ensure custom headers are passed if possible
+# (Some Apache configurations require explicit passing)
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+SetEnvIf X-User-UID "(.*)" HTTP_X_USER_UID=$1
+
+# Add headers for Firebase Login
+<IfModule mod_headers.c>
+    Header set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+</IfModule>

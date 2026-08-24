@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { Loader2, MessageSquare, Plus, Tag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TicketsPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -16,6 +16,11 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
   
   // New Ticket Form
   const [formData, setFormData] = useState({
@@ -24,23 +29,11 @@ export default function TicketsPage() {
       description: '',
       priority: 'medium',
       project: '',
-      client_id: '' // For admin to select client
+      client_id: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading && user) {
-        fetchTickets();
-        fetchProjects(); // Projects needed for both client and admin (admin sees all keys, client sees theirs)
-        if (role === 'admin') {
-            fetchClients();
-        }
-    } else if (!authLoading && !user) {
-        router.push('/login');
-    }
-  }, [user, authLoading, router, role]);
-
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
       try {
           if (!user) return;
           const res = await fetch(`/api/v1/tickets?firebaseUid=${user.uid}`);
@@ -48,39 +41,127 @@ export default function TicketsPage() {
               const data = await res.json();
               setTickets(data.data);
           }
-      } catch (e) {
-          console.error(e);
+      } catch {
+          
       } finally {
           setLoading(false);
       }
-  };
+  }, [user]);
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
       try {
           const res = await fetch('/api/v1/projects');
           const json = await res.json();
-          // Filter if client
           if (role === 'client') {
               setProjectsDropdown((json.data || []).filter((p: any) => p.client_id === user?.uid));
           } else {
               setProjectsDropdown(json.data || []);
           }
-      } catch (e) { console.error(e); }
-  };
+      } catch {  }
+  }, [role, user]);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
       try {
           const res = await fetch('/api/v1/users');
           const json = await res.json();
           setClientsDropdown((json.data || []).filter((u: any) => u.role === 'client'));
-      } catch (e) { console.error(e); }
+      } catch {  }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    if (!authLoading && user) {
+        fetchTickets();
+        fetchProjects();
+        if (role === 'admin') {
+            fetchClients();
+        }
+    } else if (!authLoading && !user) {
+        router.push('/login');
+    }
+  }, [user, authLoading, router, role, fetchTickets, fetchProjects, fetchClients]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) setSelectedIds(tickets.map(t => t._id));
+    else setSelectedIds([]);
+  };
+
+  const handleSelectOne = (id: string) => {
+    if (selectedIds.includes(id)) setSelectedIds(selectedIds.filter(i => i !== id));
+    else setSelectedIds([...selectedIds, id]);
+  };
+
+  const handleBulkStatusChange = async (status: string) => {
+    if (selectedIds.length === 0) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`Updating ${selectedIds.length} tickets...`);
+    try {
+      const res = await fetch('/api/v1/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'update', updateData: { status } })
+      });
+      if (res.ok) {
+        toast.success(`Updated ${selectedIds.length} tickets to ${status.replace('_', ' ')}`, { id: t });
+        setSelectedIds([]);
+        fetchTickets();
+      } else {
+        toast.error('Failed to update tickets', { id: t });
+      }
+    } catch {
+      toast.error('Error updating tickets', { id: t });
+    } finally { setBulkProcessing(false); }
+  };
+
+  const handleBulkPriorityChange = async (priority: string) => {
+    if (selectedIds.length === 0) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`Updating priority for ${selectedIds.length} tickets...`);
+    try {
+      const res = await fetch('/api/v1/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'update', updateData: { priority } })
+      });
+      if (res.ok) {
+        toast.success(`Updated priority for ${selectedIds.length} tickets`, { id: t });
+        setSelectedIds([]);
+        fetchTickets();
+      } else {
+        toast.error('Failed to update ticket priority', { id: t });
+      }
+    } catch {
+      toast.error('Error updating priority', { id: t });
+    } finally { setBulkProcessing(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Delete ${selectedIds.length} tickets? This cannot be undone.`)) return;
+    setBulkProcessing(true);
+    const t = toast.loading(`Deleting ${selectedIds.length} tickets...`);
+    try {
+      const res = await fetch('/api/v1/tickets/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedIds, action: 'delete' })
+      });
+      if (res.ok) {
+        toast.success(`Deleted ${selectedIds.length} tickets`, { id: t });
+        setSelectedIds([]);
+        fetchTickets();
+      } else {
+        toast.error('Failed to delete tickets', { id: t });
+      }
+    } catch {
+      toast.error('Error deleting tickets', { id: t });
+    } finally { setBulkProcessing(false); }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
       e.preventDefault();
       if (!user) return;
       
-      // Admin matching check
       if (role === 'admin' && !formData.client_id) {
           toast.error('Please select a client');
           return;
@@ -109,8 +190,8 @@ export default function TicketsPage() {
           } else {
               toast.error('Failed to create ticket', { id: loadingToast });
           }
-      } catch (e) {
-          console.error(e);
+      } catch {
+          
           toast.error('Error creating ticket', { id: loadingToast });
       } finally {
           setSubmitting(false);
@@ -129,8 +210,7 @@ export default function TicketsPage() {
           } else {
               toast.error('Failed to delete ticket', { id: loadingToast });
           }
-      } catch(e) {
-          console.error(e);
+      } catch {
           toast.error('Error deleting ticket', { id: loadingToast });
       } finally {
           setDeletingId(null);
@@ -152,7 +232,6 @@ export default function TicketsPage() {
                 <h2 className="text-3xl font-bold tracking-tight">Support Tickets</h2>
                 <p className="text-muted-foreground mt-1">Manage your support requests and inquiries.</p>
             </div>
-            {/* Admin can also create tickets now */}
             <button 
                 onClick={() => setShowModal(true)}
                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
@@ -160,6 +239,57 @@ export default function TicketsPage() {
                 <Plus className="h-4 w-4" /> New Ticket
             </button>
         </div>
+
+        {/* Bulk Action Toolbar */}
+        {selectedIds.length > 0 && role === 'admin' && (
+          <div className="sticky top-4 z-20 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-primary/40 bg-card p-4 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">
+                {selectedIds.length}
+              </span>
+              <span>Ticket(s) Selected</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                onChange={(e) => { if (e.target.value) handleBulkStatusChange(e.target.value); }}
+                disabled={bulkProcessing}
+                defaultValue=""
+                className="h-9 rounded-lg border border-input bg-background px-3 text-xs font-medium outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="" disabled>-- Bulk Status --</option>
+                <option value="open">Set Open</option>
+                <option value="in_progress">Set In Progress</option>
+                <option value="resolved">Set Resolved</option>
+                <option value="closed">Set Closed</option>
+              </select>
+
+              <select
+                onChange={(e) => { if (e.target.value) handleBulkPriorityChange(e.target.value); }}
+                disabled={bulkProcessing}
+                defaultValue=""
+                className="h-9 rounded-lg border border-input bg-background px-3 text-xs font-medium outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+              >
+                <option value="" disabled>-- Bulk Priority --</option>
+                <option value="low">Priority: Low</option>
+                <option value="medium">Priority: Medium</option>
+                <option value="high">Priority: High</option>
+              </select>
+
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkProcessing}
+                className="flex items-center gap-1.5 h-9 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 px-3 text-xs font-semibold hover:bg-destructive/20 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Bulk Delete
+              </button>
+
+              <button onClick={() => setSelectedIds([])} className="h-9 rounded-lg border border-border px-3 text-xs font-medium hover:bg-muted">
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
              {tickets.length === 0 ? (
@@ -171,8 +301,19 @@ export default function TicketsPage() {
                  <table className="w-full text-left text-sm">
                      <thead className="bg-muted/50 text-muted-foreground">
                          <tr>
+                             {role === 'admin' && (
+                               <th className="px-4 py-3 w-10">
+                                 <input
+                                   type="checkbox"
+                                   checked={selectedIds.length === tickets.length && tickets.length > 0}
+                                   onChange={(e) => handleSelectAll(e.target.checked)}
+                                   className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                                 />
+                               </th>
+                             )}
                              <th className="px-6 py-3 font-medium">Subject</th>
                              <th className="px-6 py-3 font-medium">Type</th>
+                             <th className="px-6 py-3 font-medium">Priority</th>
                              <th className="px-6 py-3 font-medium">Project</th>
                              <th className="px-6 py-3 font-medium">Status</th>
                              <th className="px-6 py-3 font-medium">Last Update</th>
@@ -180,8 +321,20 @@ export default function TicketsPage() {
                          </tr>
                      </thead>
                      <tbody className="divide-y divide-border">
-                         {tickets.map((t) => (
-                             <tr key={t._id} className="hover:bg-muted/50 transition-colors">
+                         {tickets.map((t) => {
+                           const isSelected = selectedIds.includes(t._id);
+                           return (
+                             <tr key={t._id} className={`hover:bg-muted/50 transition-colors ${isSelected ? 'bg-primary/5' : ''}`}>
+                                 {role === 'admin' && (
+                                   <td className="px-4 py-4">
+                                     <input
+                                       type="checkbox"
+                                       checked={isSelected}
+                                       onChange={() => handleSelectOne(t._id)}
+                                       className="h-4 w-4 rounded border-gray-300 cursor-pointer"
+                                     />
+                                   </td>
+                                 )}
                                  <td className="px-6 py-4 font-medium">
                                      <Link href={`/tickets/${t._id}`} className="hover:underline text-foreground">
                                          {t.subject}
@@ -191,6 +344,15 @@ export default function TicketsPage() {
                                      )}
                                  </td>
                                  <td className="px-6 py-4 text-muted-foreground capitalize">{t.type.replace('_', ' ')}</td>
+                                 <td className="px-6 py-4">
+                                   <span className={`text-xs font-semibold px-2 py-0.5 rounded border ${
+                                     t.priority === 'high' ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                     t.priority === 'medium' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                                     'bg-muted text-muted-foreground border-border'
+                                   }`}>
+                                     {t.priority}
+                                   </span>
+                                 </td>
                                  <td className="px-6 py-4 text-muted-foreground">
                                      {t.project ? (
                                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-secondary text-secondary-foreground text-xs">
@@ -208,9 +370,9 @@ export default function TicketsPage() {
                                          {t.status.replace('_', ' ')}
                                      </span>
                                  </td>
-                                 <td className="px-6 py-4 text-muted-foreground">
-                                     {new Date(t.updatedAt).toLocaleDateString()}
-                                 </td>
+                                  <td className="px-6 py-4 text-muted-foreground">
+                                     {mounted ? new Date(t.updatedAt).toLocaleDateString() : '...'}
+                                  </td>
                                  <td className="px-6 py-4 text-right flex justify-end gap-2">
                                      <Link href={`/tickets/${t._id}`} className="text-primary hover:underline">
                                          View
@@ -226,7 +388,8 @@ export default function TicketsPage() {
                                      )}
                                  </td>
                              </tr>
-                         ))}
+                           );
+                         })}
                      </tbody>
                  </table>
              )}
@@ -239,7 +402,6 @@ export default function TicketsPage() {
                     <h3 className="text-lg font-bold mb-4">Create New Ticket</h3>
                     <form onSubmit={handleCreate} className="space-y-4">
                          
-                        {/* Admin: Client Selection */}
                         {role === 'admin' && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">Assign to Client</label>
@@ -295,7 +457,6 @@ export default function TicketsPage() {
                             </div>
                         </div>
 
-                         {/* Project Selection */}
                          <div className="space-y-2">
                              <label className="text-sm font-medium">Related Project (Optional)</label>
                              <select 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function OnboardingPage() {
   const { user, userProfile } = useAuth();
@@ -86,7 +86,7 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-2xl space-y-8 rounded-xl border border-border bg-card p-8 shadow-lg">
             <div>
-                <h2 className="text-3xl font-bold tracking-tight">Welcome! Let's get you set up.</h2>
+                <h2 className="text-3xl font-bold tracking-tight">Welcome! Let&apos;s get you set up.</h2>
                 <p className="mt-2 text-muted-foreground">Please complete your profile to continue.</p>
             </div>
 

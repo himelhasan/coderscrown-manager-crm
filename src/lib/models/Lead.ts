@@ -1,12 +1,27 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 
-export interface ILead extends Document {
+export interface IColdOutreach {
+  first_email_sent_date?: Date;
+  last_outreach_date?: Date;
+  next_followup_date?: Date;
+  followup_interval?: string;
+  followup_sequence_number?: number;
+  campaign_name?: string;
+  campaign_status?: string;
+  response_status?: string;
+  last_followup_sent_date?: Date;
+  automated_followups_scheduled?: number;
+}
+
+export interface ILead {
+  id?: string;
+  _id?: string;
   name: string;
   email: string;
   phone?: string;
   address?: string;
   website?: string;
-  facebook_link?: string; // Keep for backward compatibility or map to personal/page
+  facebook_link?: string;
   fb_personal_link?: string;
   fb_page_link?: string;
   instagram_link?: string;
@@ -21,58 +36,65 @@ export interface ILead extends Document {
   status: 'new' | 'in_progress' | 'contacted' | 'waiting_response' | 'qualified' | 'not_interested' | 'converted';
   tags: string[];
   notes?: string;
-  cold_outreach?: {
-    first_email_sent_date?: Date;
-    next_followup_date?: Date;
-    followup_interval?: '3_days' | '7_days' | '14_days' | '30_days' | 'custom';
-    followup_sequence_number?: number;
-    campaign_name?: string;
-    campaign_status?: 'active' | 'paused' | 'completed' | 'failed';
-    response_status?: 'no_response' | 'interested' | 'not_interested' | 'needs_info' | 'schedule_call';
-    last_followup_sent_date?: Date;
-    automated_followups_scheduled?: number;
-  };
-  createdAt: Date;
-  updatedAt: Date;
+  cold_outreach?: IColdOutreach;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const LeadSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone: { type: String },
-  address: { type: String },
-  website: { type: String },
-  facebook_link: { type: String },
-  fb_personal_link: { type: String },
-  fb_page_link: { type: String },
-  instagram_link: { type: String },
-  linkedin_link: { type: String },
-  linkedin_company: { type: String },
-  company_name: { type: String },
-  industry: { type: String },
-  company_size: { type: String },
-  position: { type: String },
-  best_contact_time: { type: String },
-  source: { type: String },
-  status: {
-    type: String,
-    enum: ['new', 'in_progress', 'contacted', 'waiting_response', 'qualified', 'not_interested', 'converted'],
-    default: 'new'
-  },
-  tags: [String],
-  notes: { type: String },
-  cold_outreach: {
+export interface ILeadDocument extends Omit<ILead, 'id' | '_id'>, Document {}
+
+const ColdOutreachSchema = new Schema<IColdOutreach>(
+  {
     first_email_sent_date: { type: Date },
+    last_outreach_date: { type: Date },
     next_followup_date: { type: Date },
     followup_interval: { type: String },
     followup_sequence_number: { type: Number, default: 0 },
     campaign_name: { type: String },
-    campaign_status: { type: String, enum: ['active', 'paused', 'completed', 'failed'], default: 'active' },
-    response_status: { type: String, enum: ['no_response', 'interested', 'not_interested', 'needs_info', 'schedule_call'], default: 'no_response' },
+    campaign_status: { type: String },
+    response_status: { type: String },
     last_followup_sent_date: { type: Date },
-    automated_followups_scheduled: { type: Number, default: 0 }
-  }
-}, { timestamps: true });
+    automated_followups_scheduled: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
-// Prevent overwrite on HMR
-export default mongoose.models.Lead || mongoose.model<ILead>('Lead', LeadSchema);
+const LeadSchema = new Schema<ILeadDocument>(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, index: true },
+    phone: { type: String },
+    address: { type: String },
+    website: { type: String },
+    facebook_link: { type: String },
+    fb_personal_link: { type: String },
+    fb_page_link: { type: String },
+    instagram_link: { type: String },
+    linkedin_link: { type: String },
+    linkedin_company: { type: String },
+    company_name: { type: String },
+    industry: { type: String },
+    company_size: { type: String },
+    position: { type: String },
+    best_contact_time: { type: String },
+    source: { type: String },
+    status: {
+      type: String,
+      enum: ['new', 'in_progress', 'contacted', 'waiting_response', 'qualified', 'not_interested', 'converted'],
+      default: 'new',
+      index: true,
+    },
+    tags: { type: [String], default: [] },
+    notes: { type: String },
+    cold_outreach: { type: ColdOutreachSchema, default: {} },
+  },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+const Lead: Model<ILeadDocument> = mongoose.models.Lead || mongoose.model<ILeadDocument>('Lead', LeadSchema);
+
+export default Lead;

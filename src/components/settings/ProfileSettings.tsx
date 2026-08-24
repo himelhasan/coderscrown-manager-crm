@@ -1,11 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/AuthContext';
 import { Loader2, Save, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileSettings() {
-  const { user, role } = useAuth();
+  const { user, role: _role_unused } = useAuth();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [formData, setFormData] = useState({

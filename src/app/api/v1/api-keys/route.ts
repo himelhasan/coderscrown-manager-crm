@@ -1,28 +1,29 @@
 
-import dbConnect from '@/lib/db';
-import ApiKey from '@/lib/models/ApiKey';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../lib/db';
+import ApiKey from '../../../../lib/models/ApiKey';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     await dbConnect();
     // Return all keys for now (Admin view), typically filter by user
-    const keys = await ApiKey.find().sort({ createdAt: -1 });
+    const keys = await ApiKey.find();
     
     // Mask items? user might want to see name and prefix
     // The hash is secure, but we shouldn't return it either usually, but it's a hash.
     // Let's return the document as is (it only has hash).
     return NextResponse.json({ data: keys });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_id_request_unused: NextRequest) {
   try {
     await dbConnect();
-    const body = await request.json();
+    const body = await _id_request_unused.json();
     
     // Generate Key
     const rawKey = 'sk_' + crypto.randomBytes(24).toString('hex');
@@ -43,7 +44,8 @@ export async function POST(request: NextRequest) {
         secret_key: rawKey // User must save this
     }, { status: 201 });
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

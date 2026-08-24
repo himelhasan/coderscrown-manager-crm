@@ -1,7 +1,7 @@
 
-import dbConnect from '@/lib/db';
-import Lead from '@/lib/models/Lead';
 import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '../../../../../lib/db';
+import Lead from '../../../../../lib/models/Lead';
 
 export async function GET(
   request: NextRequest,
@@ -33,10 +33,7 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const lead = await Lead.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    });
+    const lead = await Lead.findByIdAndUpdate(id, body);
 
     if (!lead) {
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });

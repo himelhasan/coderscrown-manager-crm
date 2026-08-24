@@ -1,7 +1,15 @@
+'use client';
+
 import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function NewTickets({ tickets }: { tickets: any[] }) {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <div className="rounded-xl border border-border bg-card shadow-sm h-full flex flex-col">
       <div className="border-b border-border p-6 flex flex-row items-center justify-between">
@@ -33,7 +41,7 @@ export default function NewTickets({ tickets }: { tickets: any[] }) {
                                     {ticket.status.replace('_', ' ')}
                                 </span>
                                 <span>•</span>
-                                <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                                <span>{mounted ? new Date(ticket.createdAt).toLocaleDateString() : '...'}</span>
                                 {ticket.client && (
                                     <>
                                         <span>•</span>
