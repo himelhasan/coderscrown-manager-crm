@@ -4,6 +4,7 @@ import { Check, Edit, ExternalLink, FolderPlus, Loader2, Plus, Terminal, Trash2 
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+import RichTextEditor from '../../components/ui/RichTextEditor';
 
 export default function ProjectsPage() {
   const { user, role } = useAuth();
@@ -37,7 +38,7 @@ export default function ProjectsPage() {
         const json = await res.json();
         setProjects(json.data || []);
     } catch {
-        
+        // quiet error
     } finally {
         setLoading(false);
     }
@@ -154,7 +155,6 @@ export default function ProjectsPage() {
             toast.error('Failed to create project', { id: loadingToast });
         }
     } catch {
-        
         toast.error('Error creating project', { id: loadingToast });
     }
   };
@@ -177,7 +177,6 @@ export default function ProjectsPage() {
            toast.error('Failed to update project', { id: loadingToast });
        }
    } catch {
-       
        toast.error('Error updating project', { id: loadingToast });
    }
  };
@@ -193,8 +192,7 @@ export default function ProjectsPage() {
           } else {
             toast.error('Failed to delete project', { id: loadingToast });
           }
-      } catch { 
-           
+      } catch {
           toast.error('Error deleting project', { id: loadingToast });
       }
   };
@@ -210,7 +208,7 @@ export default function ProjectsPage() {
       setEditingId(project._id);
       setFormData({
           name: project.name,
-          description: project.description,
+          description: project.description || '',
           link: project.link,
           status: project.status,
           image_link: project.image_link,
@@ -242,7 +240,7 @@ export default function ProjectsPage() {
             {(role === 'client' || role === 'admin') && (
                 <button 
                     onClick={openCreateModal}
-                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
                 >
                     <Plus className="h-4 w-4" /> Add Project
                 </button>
@@ -367,15 +365,17 @@ export default function ProjectsPage() {
                                     </div>
                                 </div>
                                 {project.link && (
-                                    <a href={project.link} target="_blank" className="text-muted-foreground hover:text-foreground">
+                                    <a href={project.link} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                                         <ExternalLink className="h-4 w-4" />
                                     </a>
                                 )}
                             </div>
                             
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4 flex-1">
-                                {project.description || 'No description provided.'}
-                            </p>
+                            {/* Rich formatted description display */}
+                            <div 
+                              className="text-xs text-muted-foreground line-clamp-3 mb-4 flex-1 prose dark:prose-invert max-w-none"
+                              dangerouslySetInnerHTML={{ __html: project.description || 'No description provided.' }}
+                            />
 
                             <div className="w-full h-px bg-border my-4"></div>
 
@@ -421,8 +421,7 @@ export default function ProjectsPage() {
                                                 } else {
                                                     toast.error('Failed to approve', { id: loadingToast });
                                                 }
-                                            } catch(err) { 
-                                                console.error(err); 
+                                            } catch {
                                                 toast.error('Error approving', { id: loadingToast });
                                             }
                                         }}
@@ -463,81 +462,107 @@ export default function ProjectsPage() {
         {/* Modal */}
         {showModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-                <div className="w-full max-w-lg rounded-xl border border-border bg-card p-6 shadow-lg max-h-[90vh] overflow-y-auto">
+                <div className="w-full max-w-2xl rounded-xl border border-border bg-card p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
                     <h3 className="text-lg font-semibold mb-4">{modalMode === 'create' ? 'Add New Project' : 'Edit Project'}</h3>
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <input 
-                            className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Project Name"
-                            required
-                            value={formData.name}
-                            onChange={e => setFormData({...formData, name: e.target.value})}
-                        />
-                         <textarea 
-                            className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary resize-none"
-                            placeholder="Description"
-                            rows={3}
-                            value={formData.description}
-                            onChange={e => setFormData({...formData, description: e.target.value})}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                             <select
-                                className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                                value={formData.status}
-                                onChange={e => setFormData({...formData, status: e.target.value})}
-                             >
-                                 <option value="development">Development</option>
-                                 <option value="live">Live</option>
-                                 <option value="archived">Archived</option>
-                             </select>
-                             <input 
-                                className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="Project Link (URL)"
-                                type="url"
-                                value={formData.link || ''}
-                                onChange={e => setFormData({...formData, link: e.target.value})}
-                            />
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-muted-foreground">Project Name *</label>
+                          <input 
+                              className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Project Name"
+                              required
+                              value={formData.name}
+                              onChange={e => setFormData({...formData, name: e.target.value})}
+                          />
                         </div>
-                        <div>
+
+                        {/* Lightweight WYSIWYG Editor for Description */}
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-muted-foreground">Project Description (Rich Text WYSIWYG)</label>
+                          <RichTextEditor
+                            value={formData.description}
+                            onChange={(val) => setFormData({ ...formData, description: val })}
+                            placeholder="Describe project scope, deliverables, features, and notes..."
+                            minHeight="140px"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-1">
+                               <label className="text-xs font-semibold text-muted-foreground">Status</label>
+                               <select
+                                  className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                  value={formData.status}
+                                  onChange={e => setFormData({...formData, status: e.target.value})}
+                               >
+                                   <option value="development">Development</option>
+                                   <option value="live">Live</option>
+                                   <option value="archived">Archived</option>
+                               </select>
+                             </div>
+                             <div className="space-y-1">
+                               <label className="text-xs font-semibold text-muted-foreground">Project Live Link (URL)</label>
+                               <input 
+                                  className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                  placeholder="https://..."
+                                  type="url"
+                                  value={formData.link || ''}
+                                  onChange={e => setFormData({...formData, link: e.target.value})}
+                              />
+                             </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-muted-foreground">Cover Image Link (URL)</label>
                             <input 
                                 className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="Image Link (URL)"
+                                placeholder="https://..."
                                 type="url"
                                 value={formData.image_link || ''}
                                 onChange={e => setFormData({...formData, image_link: e.target.value})}
                             />
                         </div>
+
                         <div className="grid grid-cols-2 gap-4">
-                            <input 
-                                className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="Budget (e.g. 500)"
-                                type="number"
-                                value={formData.budget === undefined || formData.budget === null ? '' : formData.budget}
-                                onChange={e => {
-                                    const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
-                                    setFormData({...formData, budget: val});
-                                }}
-                            />
-                             <input 
-                                className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                                placeholder="Deadline (YYYY-MM-DD)"
-                                type="date"
-                                value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
-                                onChange={e => setFormData({...formData, deadline: e.target.value ? new Date(e.target.value) : undefined})}
-                            />
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold text-muted-foreground">Budget ($)</label>
+                              <input 
+                                  className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                  placeholder="e.g. 1500"
+                                  type="number"
+                                  value={formData.budget === undefined || formData.budget === null ? '' : formData.budget}
+                                  onChange={e => {
+                                      const val = e.target.value === '' ? undefined : parseFloat(e.target.value);
+                                      setFormData({...formData, budget: val});
+                                  }}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-xs font-semibold text-muted-foreground">Deadline</label>
+                              <input 
+                                  className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                                  type="date"
+                                  value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
+                                  onChange={e => setFormData({...formData, deadline: e.target.value ? new Date(e.target.value) : undefined})}
+                              />
+                            </div>
                         </div>
-                         <input 
-                            className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                            placeholder="Tech Stack (comma separated)"
-                            value={formData.tech_stack ? formData.tech_stack.join(', ') : ''}
-                            onChange={e => {
-                                const val = e.target.value;
-                                setFormData({
-                                    ...formData, 
-                                    tech_stack: val ? val.split(',').map((s: string) => s.trim()) : []
-                                });
-                            }}
-                        />
+
+                        <div className="space-y-1">
+                          <label className="text-xs font-semibold text-muted-foreground">Tech Stack (comma-separated)</label>
+                          <input 
+                              className="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                              placeholder="Next.js, MongoDB, Tailwind CSS, TypeScript"
+                              value={formData.tech_stack ? formData.tech_stack.join(', ') : ''}
+                              onChange={e => {
+                                  const val = e.target.value;
+                                  setFormData({
+                                      ...formData, 
+                                      tech_stack: val ? val.split(',').map((s: string) => s.trim()) : []
+                                  });
+                              }}
+                          />
+                        </div>
                         
                         {role === 'admin' && (
                             <div className="flex items-center gap-2 pt-2">
@@ -554,7 +579,7 @@ export default function ProjectsPage() {
 
                         <div className="flex justify-end gap-2 pt-4 border-t border-border">
                              <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm hover:bg-muted">Cancel</button>
-                             <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90">
+                             <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
                                  {modalMode === 'create' ? 'Create Project' : 'Save Changes'}
                              </button>
                         </div>

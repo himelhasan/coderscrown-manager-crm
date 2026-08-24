@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowDown, ArrowUp, Briefcase, Eye, Facebook, Instagram, Mail, MessageCircle, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Briefcase, ExternalLink, Eye, Facebook, Globe, Instagram, Mail, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -34,8 +34,7 @@ export default function LeadsClient() {
       } else {
         toast.error('Failed to fetch leads');
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error('Error fetching leads');
     } finally {
       setLoading(false);
@@ -53,8 +52,8 @@ export default function LeadsClient() {
           const json = await res.json();
           setCampaigns(json.data || []);
         }
-      } catch (e) {
-        console.error(e);
+      } catch {
+        // quiet error
       }
     };
     fetchCampaigns();
@@ -99,8 +98,7 @@ export default function LeadsClient() {
       } else {
         toast.error('Failed to update leads', { id: loadingToast });
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error('Error updating leads', { id: loadingToast });
     } finally {
       setBulkProcessing(false);
@@ -133,8 +131,7 @@ export default function LeadsClient() {
       } else {
         toast.error('Failed to assign campaign to leads', { id: loadingToast });
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error('Error assigning campaign', { id: loadingToast });
     } finally {
       setBulkProcessing(false);
@@ -165,8 +162,7 @@ export default function LeadsClient() {
       } else {
         toast.error('Failed to delete leads', { id: loadingToast });
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error('Error deleting leads', { id: loadingToast });
     } finally {
       setBulkProcessing(false);
@@ -187,8 +183,7 @@ export default function LeadsClient() {
           } else {
               toast.error('Failed to delete lead', { id: loadingToast });
           }
-      } catch (e) {
-          console.error(e);
+      } catch {
           toast.error('Error deleting lead', { id: loadingToast });
       } finally {
           setDeletingId(null);
@@ -310,9 +305,10 @@ export default function LeadsClient() {
                         className="h-4 w-4 rounded border-gray-300 cursor-pointer"
                       />
                     </th>
+                    {/* Fixed-width Name Column */}
                     <th 
                       onClick={() => handleHeaderSort('name')}
-                      className="px-6 py-3 font-medium cursor-pointer select-none hover:text-foreground"
+                      className="px-6 py-3 font-medium cursor-pointer select-none hover:text-foreground w-[180px] min-w-[180px] max-w-[180px]"
                     >
                       Name {renderSortIndicator('name')}
                     </th>
@@ -321,6 +317,10 @@ export default function LeadsClient() {
                       className="px-6 py-3 font-medium cursor-pointer select-none hover:text-foreground"
                     >
                       Company {renderSortIndicator('company_name')}
+                    </th>
+                    {/* Website Column */}
+                    <th className="px-6 py-3 font-medium">
+                      Website
                     </th>
                     <th 
                       onClick={() => handleHeaderSort('industry')}
@@ -343,13 +343,13 @@ export default function LeadsClient() {
             <tbody className="divide-y divide-border">
                 {loading ? (
                     <tr>
-                        <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
+                        <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
                             Loading leads...
                         </td>
                     </tr>
                 ) : (leads?.length === 0 || !leads) ? (
                     <tr>
-                        <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
+                        <td colSpan={10} className="px-6 py-12 text-center text-muted-foreground">
                             No leads found matching current filters.
                         </td>
                     </tr>
@@ -366,12 +366,31 @@ export default function LeadsClient() {
                                 className="h-4 w-4 rounded border-gray-300 cursor-pointer"
                               />
                             </td>
-                            <td className="px-6 py-4 font-medium">
+                            {/* Fixed Width Name Cell */}
+                            <td className="px-6 py-4 font-medium w-[180px] min-w-[180px] max-w-[180px] truncate" title={lead.name}>
                                 <Link href={`/leads/${lead._id}`} className="hover:underline text-primary">
                                     {lead.name}
                                 </Link>
                             </td>
                             <td className="px-6 py-4 text-muted-foreground">{lead.company_name || '-'}</td>
+                            {/* Website Link Cell */}
+                            <td className="px-6 py-4">
+                              {lead.website ? (
+                                <a
+                                  href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium max-w-[160px] truncate"
+                                  title={lead.website}
+                                >
+                                  <Globe className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="truncate">{lead.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
+                                  <ExternalLink className="h-3 w-3 shrink-0 opacity-60" />
+                                </a>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">-</span>
+                              )}
+                            </td>
                             <td className="px-6 py-4">
                               {lead.industry ? (
                                 <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded border border-border bg-muted">
@@ -395,23 +414,32 @@ export default function LeadsClient() {
                                      <a href={`mailto:${lead.email}`} className="hover:text-foreground" title="Email">
                                         <Mail className="h-4 w-4" />
                                      </a>
+                                     {/* Official WhatsApp Green SVG Icon */}
                                      {lead.phone && (
-                                         <a href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`} target="_blank" className="hover:text-green-500" title="WhatsApp">
-                                            <MessageCircle className="h-4 w-4" />
+                                         <a 
+                                            href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="hover:opacity-80 transition-opacity" 
+                                            title={`WhatsApp: ${lead.phone}`}
+                                         >
+                                            <svg className="h-4 w-4 fill-[#25D366]" viewBox="0 0 24 24">
+                                              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.316 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.818-.981zm10.021-7.234c.058-.098.058-.202 0-.299-.058-.098-.216-.157-.452-.275-.236-.118-1.397-.689-1.613-.768-.216-.079-.373-.118-.531.118-.157.236-.61 1.024-.748 1.181-.137.158-.275.177-.511.059-.236-.118-.996-.367-1.897-1.171-.7-.625-1.173-1.397-1.311-1.633-.137-.236-.015-.364.103-.482.107-.107.236-.275.354-.413.118-.138.157-.236.236-.393.079-.158.039-.296-.02-.413-.059-.118-.531-1.28-.728-1.753-.192-.461-.387-.398-.531-.406-.138-.007-.296-.008-.453-.008-.158 0-.414.059-.63.296-.217.236-.827.808-.827 1.97 0 1.162.846 2.285.964 2.442.118.158 1.666 2.544 4.037 3.566.564.243 1.005.388 1.349.497.567.18 1.083.155 1.49.094.455-.068 1.397-.57 1.594-1.121.197-.551.197-1.023.138-1.121z"/>
+                                            </svg>
                                          </a>
                                      )}
                                      {lead.facebook_link && (
-                                         <a href={lead.facebook_link} target="_blank" className="hover:text-blue-600" title="Facebook">
+                                         <a href={lead.facebook_link} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600" title="Facebook">
                                             <Facebook className="h-4 w-4" />
                                          </a>
                                      )}
                                      {lead.instagram_link && ( 
-                                         <a href={lead.instagram_link} target="_blank" className="hover:text-pink-600" title="Instagram">
+                                         <a href={lead.instagram_link} target="_blank" rel="noopener noreferrer" className="hover:text-pink-600" title="Instagram">
                                             <Instagram className="h-4 w-4" />
                                          </a>
                                      )}
                                      {lead.linkedin_link && (
-                                         <a href={lead.linkedin_link} target="_blank" className="hover:text-blue-700" title="LinkedIn">
+                                         <a href={lead.linkedin_link} target="_blank" rel="noopener noreferrer" className="hover:text-blue-700" title="LinkedIn">
                                             <span className="text-xs font-bold border rounded px-1">in</span>
                                          </a>
                                      )}
